@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow">
+    <title>PopMinutes Admin — Duyệt Hoa Hồng</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ========== RESET ========== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #F8FAFC;
+            color: #0F172A;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        #popadmin-app {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* ========== LOGIN SCREEN ========== */
+        .pa-login-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            padding: 20px;
+        }
+        .pa-login-card {
+            background: #fff;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 32px 28px;
+            text-align: center;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+            animation: paFadeIn 0.3s ease-out;
+        }
+        @keyframes paFadeIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .pa-login-icon {
+            width: 64px;
+            height: 64px;
+            background: #EEF2FF;
+            color: #1B2B7A;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin: 0 auto 16px;
+        }
+        .pa-login-card h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1B2B7A;
+            margin: 0 0 6px;
+        }
+        .pa-login-card p {
+            font-size: 13px;
+            color: #64748B;
+            margin: 0 0 20px;
+        }
+        .pa-login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .pa-login-input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 14.5px;
+            font-family: inherit;
+            color: #0F172A;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            background: #fff;
+        }
+        .pa-login-input:focus {
+            border-color: #1B2B7A;
+            box-shadow: 0 0 0 4px rgba(27, 43, 122, 0.1);
+        }
+        .pa-login-btn {
+            width: 100%;
+            padding: 13px;
+            background: #1B2B7A;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 14.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.15s, transform 0.1s;
+            box-shadow: 0 6px 20px rgba(27, 43, 122, 0.25);
+        }
+        .pa-login-btn:hover { background: #131F5C; }
+        .pa-login-btn:active { transform: scale(0.98); }
+        .pa-login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .pa-login-err {
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: #DC2626;
+            border-radius: 10px;
+            font-size: 12.5px;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        /* ========== HEADER ========== */
+        .pa-header {
+            background: #1B2B7A;
+            color: #fff;
+            padding: 20px 24px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .pa-header h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.3px;
+        }
+        .pa-header h1 i {
+            color: #FCD34D;
+        }
+        .pa-header-sub {
+            font-size: 13px;
+            opacity: 0.75;
+            margin-top: 4px;
+        }
+        .pa-header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .pa-refresh-btn,
+        .pa-logout-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 9px 16px;
+            border-radius: 100px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .pa-refresh-btn:hover,
+        .pa-logout-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .pa-refresh-btn:active,
+        .pa-logout-btn:active {
+            transform: scale(0.97);
+        }
+        .pa-logout-btn {
+            padding: 9px 12px;
+        }
+
+        /* ========== STATS ========== */
+        .pa-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 640px) {
+            .pa-stats { grid-template-columns: 1fr; }
+        }
+        .pa-stat {
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 18px 16px;
+            text-align: center;
+        }
+        .pa-stat-val {
+            font-size: 22px;
+            font-weight: 800;
+            color: #D97706;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+        .pa-stat-lbl {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ========== LOADING / EMPTY ========== */
+        .pa-loading {
+            text-align: center;
+            padding: 50px 20px;
+            color: #64748B;
+            font-size: 14px;
+            background: #fff;
+            border-radius: 16px;
+            border: 1px dashed #CBD5E1;
+        }
+        .pa-loading i {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+
+        /* ========== PARTNER GROUP ========== */
+        .pa-group {
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-radius: 16px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .pa-group:hover {
+            box-shadow: 0 4px 16px rgba(27, 43, 122, 0.06);
+        }
+        .pa-group.expanded {
+            border-color: #BFDBFE;
+        }
+        .pa-group-header {
+            padding: 16px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            transition: background 0.15s;
+            user-select: none;
+        }
+        .pa-group-header:hover {
+            background: #F8FAFC;
+        }
+        .pa-partner-name {
+            font-weight: 800;
+            font-size: 15px;
+            color: #1B2B7A;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 3px;
+        }
+        .pa-group-body {
+            padding: 0 20px 20px;
+            display: none;
+        }
+        .pa-group.expanded .pa-group-body {
+            display: block;
+        }
+        .pa-chevron {
+            transition: transform 0.25s;
+            color: #64748B;
+            font-size: 14px;
+        }
+        .pa-group.expanded .pa-chevron {
+            transform: rotate(180deg);
+        }
+
+        /* ========== BANK CARD ========== */
+        .pa-bank-card {
+            background: #F1F5F9;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .pa-bank-card-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: #475569;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .pa-bank-rows {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .pa-bank-row {
+            font-size: 13px;
+        }
+        .pa-bank-row-label {
+            font-size: 11px;
+            color: #64748B;
+            display: block;
+            margin-bottom: 2px;
+        }
+        .pa-bank-row-value {
+            font-weight: 700;
+            color: #0F172A;
+            word-break: break-word;
+        }
+
+        /* ========== COMMISSION ITEM ========== */
+        .pa-comm {
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .pa-comm-email {
+            font-weight: 700;
+            font-size: 13px;
+            color: #0F172A;
+            word-break: break-all;
+            margin-bottom: 4px;
+        }
+        .pa-comm-meta {
+            font-size: 12px;
+            color: #64748B;
+            line-height: 1.6;
+        }
+        .pa-comm-amount {
+            font-size: 15px;
+            font-weight: 800;
+            color: #D97706;
+            white-space: nowrap;
+        }
+        .pa-paid-btn {
+            background: #10B981;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, transform 0.1s;
+            white-space: nowrap;
+        }
+        .pa-paid-btn:hover { background: #059669; }
+        .pa-paid-btn:active { transform: scale(0.97); }
+        .pa-paid-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ========== BULK PAY BUTTON ========== */
+        .pa-mark-all-btn {
+            width: 100%;
+            background: #1B2B7A;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13.5px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .pa-mark-all-btn:hover { background: #131F5C; }
+        .pa-mark-all-btn:active { transform: scale(0.98); }
+        .pa-mark-all-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* ========== TOAST ========== */
+        .pa-toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1B2B7A;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-size: 13.5px;
+            font-weight: 700;
+            z-index: 999999;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            max-width: 90vw;
+            box-shadow: 0 12px 32px rgba(27, 43, 122, 0.4);
+        }
+        .pa-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .pa-toast.error {
+            background: #DC2626;
+            box-shadow: 0 12px 32px rgba(220, 38, 38, 0.4);
+        }
+
+        /* ========== MOBILE ========== */
+        @media (max-width: 640px) {
+            #popadmin-app { padding: 12px; }
+            .pa-header { padding: 16px 18px; }
+            .pa-header h1 { font-size: 17px; }
+            .pa-group-header { padding: 14px 16px; }
+            .pa-group-body { padding: 0 16px 16px; }
+            .pa-comm { padding: 10px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="popadmin-app">
+
+    <!-- ========== LOGIN SCREEN ========== -->
+    <div id="paLoginScreen" class="pa-login-overlay">
+        <div class="pa-login-card">
+            <div class="pa-login-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h2>PopMinutes Admin</h2>
+            <p>Nhập mật khẩu quản trị để tiếp tục</p>
+            <div class="pa-login-form">
+                <input
+                    type="password"
+                    id="paPasswordInput"
+                    class="pa-login-input"
+                    placeholder="Mật khẩu Admin"
+                    autocomplete="current-password"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();paLogin();}"
+                >
+                <button id="paLoginBtn" class="pa-login-btn" onclick="paLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span>Đăng nhập</span>
+                </button>
+            </div>
+            <div id="paLoginErr" class="pa-login-err" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- ========== MAIN ADMIN CONTENT ========== -->
+    <div id="paAdminContent" style="display:none;">
+
+        <!-- HEADER -->
+        <div class="pa-header">
+            <div>
+                <h1><i class="fa-solid fa-coins"></i> Quản Lý Duyệt Hoa Hồng</h1>
+                <div class="pa-header-sub">Danh sách chờ duyệt chuyển khoản &amp; ngân hàng/PayPal</div>
+            </div>
+            <div class="pa-header-actions">
+                <button class="pa-refresh-btn" onclick="paRefresh()">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    <span>Làm mới</span>
+                </button>
+                <button class="pa-logout-btn" onclick="paLogout()" title="Đăng xuất">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="pa-stats">
+            <div class="pa-stat">
+                <div class="pa-stat-val" id="paTotalPending">—</div>
+                <div class="pa-stat-lbl">Tổng Tiền Chờ Trả</div>
+            </div>
+            <div class="pa-stat">
+                <div class="pa-stat-val" id="paTotalCount" style="color:#2563EB;">—</div>
+                <div class="pa-stat-lbl">Số Khoản Chờ</div>
+            </div>
+            <div class="pa-stat">
+                <div class="pa-stat-val" id="paPartnerCount" style="color:#059669;">—</div>
+                <div class="pa-stat-lbl">Số Đối Tác Chờ</div>
+            </div>
+        </div>
+
+        <!-- LIST -->
+        <div id="paList">
+            <div class="pa-loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Đang tải dữ liệu...
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TOAST -->
+    <div id="paToast" class="pa-toast"></div>
+
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // ========== CONFIG ==========
+    const CLOUD_URL = 'https://get-upload-url-test-824148866382.asia-southeast1.run.app';
+    const ADMIN_EMAIL = 'info@pophubly.com';
+    const TOKEN_KEY = 'popminutes_admin_token';
+
+    // ========== HELPERS ==========
+    function paFmt(n) {
+        return Number(n || 0).toLocaleString('vi-VN');
+    }
+
+    function paFmtDate(iso) {
+        if (!iso) return '—';
+        try {
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return '—';
+            return d.toLocaleDateString('vi-VN') + ' ' + d.toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return '—';
+        }
+    }
+
+    function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/[&<>"']/g, function(m) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m];
+        });
+    }
+
+    function paToast(msg, isSuccess) {
+        const t = document.getElementById('paToast');
+        if (!t) return;
+        t.textContent = msg;
+        t.className = 'pa-toast show' + (isSuccess === false ? ' error' : '');
+        clearTimeout(t._hideTimer);
+        t._hideTimer = setTimeout(function() {
+            t.className = 'pa-toast' + (isSuccess === false ? ' error' : '');
+        }, 3000);
+    }
+
+    // ========== AUTH ==========
+    function paGetToken() {
+        try {
+            return sessionStorage.getItem(TOKEN_KEY) || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function paSetToken(token) {
+        try {
+            sessionStorage.setItem(TOKEN_KEY, token);
+        } catch (e) {}
+    }
+
+    function paClearToken() {
+        try {
+            sessionStorage.removeItem(TOKEN_KEY);
+        } catch (e) {}
+    }
+
+    function paShowLogin() {
+        const loginEl = document.getElementById('paLoginScreen');
+        const contentEl = document.getElementById('paAdminContent');
+        if (loginEl) loginEl.style.display = 'flex';
+        if (contentEl) contentEl.style.display = 'none';
+    }
+
+    function paShowAdmin() {
+        const loginEl = document.getElementById('paLoginScreen');
+        const contentEl = document.getElementById('paAdminContent');
+        if (loginEl) loginEl.style.display = 'none';
+        if (contentEl) contentEl.style.display = 'block';
+    }
+
+    function paShowLoginError(msg) {
+        const err = document.getElementById('paLoginErr');
+        if (!err) return;
+        err.textContent = msg;
+        err.style.display = 'block';
+    }
+
+    function paClearLoginError() {
+        const err = document.getElementById('paLoginErr');
+        if (err) err.style.display = 'none';
+    }
+
+    // ========== LOGIN ==========
+    window.paLogin = async function() {
+        const input = document.getElementById('paPasswordInput');
+        const btn = document.getElementById('paLoginBtn');
+        if (!input || !btn) return;
+
+        const password = input.value.trim();
+        if (!password) {
+            paShowLoginError('Vui lòng nhập mật khẩu');
+            return;
+        }
+
+        paClearLoginError();
+        btn.disabled = true;
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Đang kiểm tra...</span>';
+
+        try {
+            const res = await fetch(CLOUD_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'affiliateAdminLogin',
+                    password: password
+                }).toString()
+            });
+            const data = await res.json();
+
+            if (data.status === 200 && data.token) {
+                paSetToken(data.token);
+                input.value = '';
+                paShowAdmin();
+                paRefresh();
+            } else {
+                paShowLoginError(data.message || 'Mật khẩu không đúng');
+                input.value = '';
+                input.focus();
+            }
+        } catch (e) {
+            paShowLoginError('Lỗi kết nối: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+        }
+    };
+
+    // ========== LOGOUT ==========
+    window.paLogout = function() {
+        if (!confirm('Bạn có chắc muốn đăng xuất?')) return;
+        paClearToken();
+        paShowLogin();
+        const input = document.getElementById('paPasswordInput');
+        if (input) input.focus();
+    };
+
+    // ========== TOGGLE GROUP ==========
+    window.paToggleGroup = function(partnerId) {
+        const safeId = (partnerId || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const el = document.getElementById('pagrp_' + safeId);
+        if (el) el.classList.toggle('expanded');
+    };
+
+    // ========== REFRESH DATA ==========
+    window.paRefresh = async function() {
+        const token = paGetToken();
+        if (!token) {
+            paShowLogin();
+            return;
+        }
+
+        const list = document.getElementById('paList');
+        if (!list) return;
+        list.innerHTML = '<div class="pa-loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>';
+
+        try {
+            const res = await fetch(
+                CLOUD_URL +
+                '?action=affiliateListPendingCommissions&adminToken=' +
+                encodeURIComponent(token)
+            );
+            const data = await res.json();
+
+            if (data.status === 403) {
+                paClearToken();
+                paShowLogin();
+                paShowLoginError('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+                return;
+            }
+
+            if (data.status !== 200) {
+                list.innerHTML =
+                    '<div class="pa-loading">❌ ' +
+                    escapeHtml(data.message || 'Lỗi tải dữ liệu') +
+                    '</div>';
+                return;
+            }
+
+            const items = data.commissions || [];
+
+            document.getElementById('paTotalPending').textContent = paFmt(data.total_amount) + 'đ';
+            document.getElementById('paTotalCount').textContent = data.total_count || 0;
+            document.getElementById('paPartnerCount').textContent = data.partner_count || 0;
+
+            if (items.length === 0) {
+                list.innerHTML = '<div class="pa-loading">🎉 Không có khoản hoa hồng nào cần duyệt!</div>';
+                return;
+            }
+
+            // Group theo partner_id
+            const groups = {};
+            items.forEach(function(c) {
+                const pid = c.partner_id || '_unknown_';
+                if (!groups[pid]) {
+                    groups[pid] = {
+                        partner_id: pid,
+                        partner_name: c.partner_name || pid,
+                        partner_info: c.partner_info || null,
+                        commissions: [],
+                        subtotal: 0
+                    };
+                }
+                groups[pid].commissions.push(c);
+                groups[pid].subtotal += Number(c.commission_amount) || 0;
+            });
+
+            let html = '';
+            Object.values(groups).forEach(function(g) {
+                const bank = g.partner_info || {};
+                const isPaypal = bank.method === 'paypal';
+                const hasBank = isPaypal
+                    ? (bank.paypal_email || bank.paypal_name)
+                    : (bank.bank_name || bank.bank_account || bank.bank_holder || bank.bank_branch);
+
+                // Bank/PayPal card
+                const bankHtml = hasBank
+                    ? (isPaypal
+                        ? '<div class="pa-bank-card">' +
+                            '<div class="pa-bank-card-title">' +
+                                '<i class="fa-brands fa-paypal"></i> PayPal' +
+                            '</div>' +
+                            '<div class="pa-bank-rows">' +
+                                (bank.paypal_email
+                                    ? '<div class="pa-bank-row">' +
+                                        '<span class="pa-bank-row-label">Email PayPal</span>' +
+                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.paypal_email) + '</span>' +
+                                      '</div>'
+                                    : '') +
+                                (bank.paypal_name
+                                    ? '<div class="pa-bank-row">' +
+                                        '<span class="pa-bank-row-label">Tên chủ tài khoản</span>' +
+                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.paypal_name) + '</span>' +
+                                      '</div>'
+                                    : '') +
+                            '</div>' +
+                          '</div>'
+                        : '<div class="pa-bank-card">' +
+                            '<div class="pa-bank-card-title">' +
+                                '<i class="fa-solid fa-building-columns"></i> Thông tin nhận tiền' +
+                            '</div>' +
+                            '<div class="pa-bank-rows">' +
+                                (bank.bank_name
+                                    ? '<div class="pa-bank-row">' +
+                                        '<span class="pa-bank-row-label">Ngân hàng</span>' +
+                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.bank_name) + '</span>' +
+                                      '</div>'
+                                    : '') +
+                                (bank.bank_account
+                                    ? '<div class="pa-bank-row">' +
+                                        '<span class="pa-bank-row-label">Số tài khoản</span>' +
+                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.bank_account) + '</span>' +
+                                      '</div>'
+                                    : '') +
+                                (bank.bank_holder
+                                    ? '<div class="pa-bank-row">' +
+                                        '<span class="pa-bank-row-label">Chủ tài khoản</span>' +
+                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.bank_holder) + '</span>' +
+                                      '</div>'
+                                    : '') +
+                                (bank.bank_branch
+                                    ? '<div class="pa-bank-row">' +
+                                        '<span class="pa-bank-row-label">Chi nhánh</span>' +
+                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.bank_branch) + '</span>' +
+                                      '</div>'
+                                    : '') +
+                            '</div>' +
+                          '</div>')
+                    : '<div class="pa-bank-card" style="background:#FEF2F2;">' +
+                        '<div class="pa-bank-card-title" style="color:#DC2626;">' +
+                            '<i class="fa-solid fa-triangle-exclamation"></i> Partner chưa điền thông tin nhận tiền' +
+                        '</div>' +
+                      '</div>';
+
+                // Commissions list
+                const commsHtml = g.commissions.map(function(c) {
+                    const typeText = c.commission_type === 'first' ? 'Lần đầu' : 'Tiếp theo';
+                    return '<div class="pa-comm">' +
+                        '<div style="flex:1; min-width:0;">' +
+                            '<div class="pa-comm-email">' +
+                                '<i class="fa-regular fa-envelope" style="color:#94A3B8; margin-right:6px;"></i>' +
+                                escapeHtml(c.customer_email || '—') +
+                            '</div>' +
+                            '<div class="pa-comm-meta">' +
+                                '<i class="fa-solid fa-box"></i> ' +
+                                '<b>' + escapeHtml(c.package_id || '—') + '</b> · ' +
+                                paFmt(c.payment_amount) + 'đ<br>' +
+                                '<i class="fa-solid fa-tag"></i> ' +
+                                typeText + ' · ' + c.commission_rate + '% · ' +
+                                paFmtDate(c.calculated_at) +
+                            '</div>' +
+                        '</div>' +
+                        '<div style="text-align:right;">' +
+                            '<div class="pa-comm-amount">+' + paFmt(c.commission_amount) + 'đ</div>' +
+                            '<button class="pa-paid-btn" ' +
+                                'onclick="paMarkPaid(\'' + escapeHtml(c.commission_id) + '\', ' + (c.commission_amount || 0) + ', this)">' +
+                                '<i class="fa-solid fa-check"></i> Duyệt' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>';
+                }).join('');
+
+                const safeId = (g.partner_id || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+
+                html +=
+                    '<div class="pa-group" id="pagrp_' + safeId + '">' +
+                        '<div class="pa-group-header" onclick="paToggleGroup(\'' + escapeHtml(g.partner_id) + '\')">' +
+                            '<div style="flex:1; min-width:0;">' +
+                                '<div class="pa-partner-name">' +
+                                    '<i class="fa-solid fa-user-tie"></i> ' +
+                                    escapeHtml(g.partner_name) +
+                                '</div>' +
+                                '<div style="font-size:12px; color:#64748B;">' +
+                                    escapeHtml(g.partner_id) + ' · ' +
+                                    g.commissions.length + ' khoản · ' +
+                                    '<b style="color:#D97706;">' + paFmt(g.subtotal) + 'đ</b>' +
+                                '</div>' +
+                            '</div>' +
+                            '<i class="fa-solid fa-chevron-down pa-chevron"></i>' +
+                        '</div>' +
+                        '<div class="pa-group-body">' +
+                            bankHtml +
+                            '<div style="font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:8px;">' +
+                                'Chi tiết (' + g.commissions.length + ' khoản)' +
+                            '</div>' +
+                            commsHtml +
+                            '<button class="pa-mark-all-btn" ' +
+                                'onclick="paMarkAll(\'' + escapeHtml(g.partner_id) + '\', this)">' +
+                                '<i class="fa-solid fa-check-double"></i> ' +
+                                'Duyệt tất cả (' + g.commissions.length + ' khoản)' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>';
+            });
+
+            list.innerHTML = html;
+
+            // Auto expand nếu chỉ 1 partner
+            if (Object.keys(groups).length === 1) {
+                const first = list.querySelector('.pa-group');
+                if (first) first.classList.add('expanded');
+            }
+
+        } catch (e) {
+            list.innerHTML = '<div class="pa-loading">❌ Lỗi kết nối máy chủ</div>';
+        }
+    };
+
+    // ========== MARK SINGLE PAID ==========
+    window.paMarkPaid = async function(comId, amount, btn) {
+        if (!confirm('Xác nhận đã chuyển khoản cho khoản hoa hồng này?\n\nSố tiền: ' + paFmt(amount) + 'đ')) return;
+
+        const token = paGetToken();
+        if (!token) {
+            paShowLogin();
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+        }
+
+        try {
+            const res = await fetch(CLOUD_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    action: 'affiliateMarkPaid',
+                    commissionId: comId,
+                    adminEmail: ADMIN_EMAIL,
+                    adminToken: token,
+                    note: 'Marked from Admin UI'
+                }).toString()
+            });
+            const data = await res.json();
+
+            if (data.status === 200) {
+                paToast('✅ Đã duyệt thành công!', true);
+                setTimeout(paRefresh, 800);
+            } else if (data.status === 403) {
+                paClearToken();
+                paShowLogin();
+                paShowLoginError('Phiên đăng nhập hết hạn');
+            } else {
+                paToast('❌ ' + (data.message || 'Lỗi duyệt hoa hồng'), false);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Duyệt';
+                }
+            }
+        } catch (e) {
+            paToast('❌ Lỗi kết nối: ' + e.message, false);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Duyệt';
+            }
+        }
+    };
+
+    // ========== MARK ALL PAID FOR PARTNER ==========
+    window.paMarkAll = async function(partnerId, btn) {
+        if (!confirm('Xác nhận duyệt TẤT CẢ khoản hoa hồng cho đối tác này?')) return;
+
+        const token = paGetToken();
+        if (!token) {
+            paShowLogin();
+            return;
+        }
+
+        const safeId = (partnerId || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const groupEl = document.getElementById('pagrp_' + safeId);
+        if (!groupEl) return;
+
+        const btns = groupEl.querySelectorAll('.pa-paid-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang duyệt hàng loạt...';
+        }
+
+        let success = 0;
+        let failed = 0;
+
+        for (const b of btns) {
+            const match = b.getAttribute('onclick').match(/paMarkPaid\('([^']+)'/);
+            if (match && match[1]) {
+                const comId = match[1];
+                b.disabled = true;
+                b.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+                try {
+                    const res = await fetch(CLOUD_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({
+                            action: 'affiliateMarkPaid',
+                            commissionId: comId,
+                            adminEmail: ADMIN_EMAIL,
+                            adminToken: token,
+                            note: 'Bulk mark from Admin UI'
+                        }).toString()
+                    });
+                    const data = await res.json();
+                    if (data.status === 200) {
+                        success++;
+                    } else {
+                        failed++;
+                    }
+                } catch (e) {
+                    failed++;
+                }
+            }
+        }
+
+        if (failed === 0) {
+            paToast('✅ Đã duyệt tất cả ' + success + ' khoản!', true);
+        } else {
+            paToast('⚠️ ' + success + ' thành công, ' + failed + ' lỗi', false);
+        }
+
+        setTimeout(paRefresh, 1000);
+    };
+
+    // ========== INIT ==========
+    function paInit() {
+        // Bind enter cho password input
+        const input = document.getElementById('paPasswordInput');
+        if (input) {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    window.paLogin();
+                }
+            });
+        }
+
+        // Check token có sẵn
+        const token = paGetToken();
+        if (token) {
+            paShowAdmin();
+            paRefresh();
+        } else {
+            paShowLogin();
+            if (input) input.focus();
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', paInit);
+    } else {
+        paInit();
+    }
+
+})();
+</script>
+
+</body>
+</html>
