@@ -547,9 +547,10 @@
         const cafe = allCafeData.find(c => c.cafe_id === cafeId);
         if (!cafe) return;
         
+        // 🚨 FIX: Chỉ lấy những bill đang hiển thị là "Chưa thanh toán" trong mảng displayBills
+        // (đề phòng trường hợp bill vừa confirm xong nhưng data chưa load kịp)
         const unpaidBills = cafe.bills.filter(b => b.payment_status !== 'paid');
         if (unpaidBills.length === 0) return;
-
         if (!confirm(`Xác nhận đã thanh toán ${paFmt(cafe.unpaid_amount)}đ cho ${cafe.cafe_name}?`)) return;
 
         btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
