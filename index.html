@@ -209,7 +209,51 @@
         .pa-logout-btn {
             padding: 9px 12px;
         }
-
+        /* ========== TABS & VIEWS ========== */
+        .pa-tabs {
+            display: flex;
+            background: #E2E8F0;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        .pa-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            color: #64748B;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .pa-tab.active {
+            background: #fff;
+            color: #1B2B7A;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .pa-view { display: none; animation: paFadeIn 0.3s; }
+        .pa-view.active { display: block; }
+        
+        .pa-month-picker {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .pa-month-picker input, .pa-month-picker select {
+            padding: 10px 16px;
+            border: 1.5px solid #E2E8F0;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1B2B7A;
+            outline: none;
+            background: #fff;
+        }
         /* ========== STATS ========== */
         .pa-stats {
             display: grid;
@@ -511,27 +555,65 @@
             </div>
         </div>
 
-        <!-- STATS -->
-        <div class="pa-stats">
-            <div class="pa-stat">
-                <div class="pa-stat-val" id="paTotalPending">—</div>
-                <div class="pa-stat-lbl">Tổng Tiền Chờ Trả</div>
+        <!-- TABS -->
+        <div class="pa-tabs">
+            <button class="pa-tab active" id="tab-affiliate" onclick="paSwitchTab('affiliate')"><i class="fa-solid fa-coins"></i> Duyệt Affiliate</button>
+            <button class="pa-tab" id="tab-cafe" onclick="paSwitchTab('cafe')"><i class="fa-solid fa-store"></i> Đối soát Quán Cafe</button>
+        </div>
+
+        <!-- ===== VIEW: AFFILIATE ===== -->
+        <div id="view-affiliate" class="pa-view active">
+            <div class="pa-stats">
+                <div class="pa-stat">
+                    <div class="pa-stat-val" id="paTotalPending">—</div>
+                    <div class="pa-stat-lbl">Tổng Tiền Chờ Trả</div>
+                </div>
+                <div class="pa-stat">
+                    <div class="pa-stat-val" id="paTotalCount" style="color:#2563EB;">—</div>
+                    <div class="pa-stat-lbl">Số Khoản Chờ</div>
+                </div>
+                <div class="pa-stat">
+                    <div class="pa-stat-val" id="paPartnerCount" style="color:#059669;">—</div>
+                    <div class="pa-stat-lbl">Số Đối Tác Chờ</div>
+                </div>
             </div>
-            <div class="pa-stat">
-                <div class="pa-stat-val" id="paTotalCount" style="color:#2563EB;">—</div>
-                <div class="pa-stat-lbl">Số Khoản Chờ</div>
-            </div>
-            <div class="pa-stat">
-                <div class="pa-stat-val" id="paPartnerCount" style="color:#059669;">—</div>
-                <div class="pa-stat-lbl">Số Đối Tác Chờ</div>
+
+            <div id="paList">
+                <div class="pa-loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Đang tải dữ liệu...
+                </div>
             </div>
         </div>
 
-        <!-- LIST -->
-        <div id="paList">
-            <div class="pa-loading">
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                Đang tải dữ liệu...
+        <!-- ===== VIEW: CAFE ===== -->
+        <div id="view-cafe" class="pa-view">
+            <div class="pa-month-picker">
+                <input type="month" id="cafeMonthPicker" onchange="loadCafeRevenue()">
+                <select id="cafePayFilter" onchange="filterAndRenderCafes()">
+                    <option value="all">Tất cả Bill</option>
+                    <option value="unpaid" selected>Chưa thanh toán</option>
+                    <option value="paid">Đã thanh toán</option>
+                </select>
+            </div>
+            
+            <div class="pa-stats">
+                <div class="pa-stat">
+                    <div class="pa-stat-val" id="cafeTotalAmount">—</div>
+                    <div class="pa-stat-lbl">Tổng Doanh Thu</div>
+                </div>
+                <div class="pa-stat">
+                    <div class="pa-stat-val" id="cafeTotalUnpaid" style="color: #DC2626;">—</div>
+                    <div class="pa-stat-lbl">Chưa Thanh Toán</div>
+                </div>
+                <div class="pa-stat">
+                    <div class="pa-stat-val" id="cafeTotalPaid" style="color: #059669;">—</div>
+                    <div class="pa-stat-lbl">Đã Thanh Toán</div>
+                </div>
+            </div>
+            
+            <div id="paListCafe">
+                <div class="pa-loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>
             </div>
         </div>
 
@@ -673,7 +755,7 @@
                 paSetToken(data.token);
                 input.value = '';
                 paShowAdmin();
-                paRefresh();
+                paRefreshCurrentTab();
             } else {
                 paShowLoginError(data.message || 'Mật khẩu không đúng');
                 input.value = '';
@@ -704,6 +786,26 @@
     };
 
     // ========== REFRESH DATA ==========
+        let currentTab = 'affiliate';
+    let allCafeData = [];
+
+    window.paSwitchTab = function(tab) {
+        currentTab = tab;
+        document.getElementById('tab-affiliate').classList.toggle('active', tab === 'affiliate');
+        document.getElementById('tab-cafe').classList.toggle('active', tab === 'cafe');
+        document.getElementById('view-affiliate').classList.toggle('active', tab === 'affiliate');
+        document.getElementById('view-cafe').classList.toggle('active', tab === 'cafe');
+        
+        if (tab === 'cafe' && allCafeData.length === 0) {
+            loadCafeRevenue();
+        }
+    };
+
+    window.paRefreshCurrentTab = function() {
+        if (currentTab === 'affiliate') paRefresh(); 
+        else loadCafeRevenue();
+    };
+
     window.paRefresh = async function() {
         const token = paGetToken();
         if (!token) {
@@ -731,10 +833,7 @@
             }
 
             if (data.status !== 200) {
-                list.innerHTML =
-                    '<div class="pa-loading">❌ ' +
-                    escapeHtml(data.message || 'Lỗi tải dữ liệu') +
-                    '</div>';
+                list.innerHTML = '<div class="pa-loading">❌ ' + escapeHtml(data.message || 'Lỗi tải dữ liệu') + '</div>';
                 return;
             }
 
@@ -749,7 +848,6 @@
                 return;
             }
 
-            // Group theo partner_id
             const groups = {};
             items.forEach(function(c) {
                 const pid = c.partner_id || '_unknown_';
@@ -774,136 +872,170 @@
                     ? (bank.paypal_email || bank.paypal_name)
                     : (bank.bank_name || bank.bank_account || bank.bank_holder || bank.bank_branch);
 
-                // Bank/PayPal card
                 const bankHtml = hasBank
                     ? (isPaypal
-                        ? '<div class="pa-bank-card">' +
-                            '<div class="pa-bank-card-title">' +
-                                '<i class="fa-brands fa-paypal"></i> PayPal' +
-                            '</div>' +
-                            '<div class="pa-bank-rows">' +
-                                (bank.paypal_email
-                                    ? '<div class="pa-bank-row">' +
-                                        '<span class="pa-bank-row-label">Email PayPal</span>' +
-                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.paypal_email) + '</span>' +
-                                      '</div>'
-                                    : '') +
-                                (bank.paypal_name
-                                    ? '<div class="pa-bank-row">' +
-                                        '<span class="pa-bank-row-label">Tên chủ tài khoản</span>' +
-                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.paypal_name) + '</span>' +
-                                      '</div>'
-                                    : '') +
-                            '</div>' +
-                          '</div>'
-                        : '<div class="pa-bank-card">' +
-                            '<div class="pa-bank-card-title">' +
-                                '<i class="fa-solid fa-building-columns"></i> Thông tin nhận tiền' +
-                            '</div>' +
-                            '<div class="pa-bank-rows">' +
-                                (bank.bank_name
-                                    ? '<div class="pa-bank-row">' +
-                                        '<span class="pa-bank-row-label">Ngân hàng</span>' +
-                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.bank_name) + '</span>' +
-                                      '</div>'
-                                    : '') +
-                                (bank.bank_account
-                                    ? '<div class="pa-bank-row">' +
-                                        '<span class="pa-bank-row-label">Số tài khoản</span>' +
-                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.bank_account) + '</span>' +
-                                      '</div>'
-                                    : '') +
-                                (bank.bank_holder
-                                    ? '<div class="pa-bank-row">' +
-                                        '<span class="pa-bank-row-label">Chủ tài khoản</span>' +
-                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.bank_holder) + '</span>' +
-                                      '</div>'
-                                    : '') +
-                                (bank.bank_branch
-                                    ? '<div class="pa-bank-row">' +
-                                        '<span class="pa-bank-row-label">Chi nhánh</span>' +
-                                        '<span class="pa-bank-row-value">' + escapeHtml(bank.bank_branch) + '</span>' +
-                                      '</div>'
-                                    : '') +
-                            '</div>' +
-                          '</div>')
-                    : '<div class="pa-bank-card" style="background:#FEF2F2;">' +
-                        '<div class="pa-bank-card-title" style="color:#DC2626;">' +
-                            '<i class="fa-solid fa-triangle-exclamation"></i> Partner chưa điền thông tin nhận tiền' +
-                        '</div>' +
-                      '</div>';
+                        ? '<div class="pa-bank-card"><div class="pa-bank-card-title"><i class="fa-brands fa-paypal"></i> PayPal</div><div class="pa-bank-rows">' + (bank.paypal_email ? '<div class="pa-bank-row"><span class="pa-bank-row-label">Email</span><span class="pa-bank-row-value">' + escapeHtml(bank.paypal_email) + '</span></div>' : '') + (bank.paypal_name ? '<div class="pa-bank-row"><span class="pa-bank-row-label">Tên</span><span class="pa-bank-row-value">' + escapeHtml(bank.paypal_name) + '</span></div>' : '') + '</div></div>'
+                        : '<div class="pa-bank-card"><div class="pa-bank-card-title"><i class="fa-solid fa-building-columns"></i> Bank</div><div class="pa-bank-rows">' + (bank.bank_name ? '<div class="pa-bank-row"><span class="pa-bank-row-label">Ngân hàng</span><span class="pa-bank-row-value">' + escapeHtml(bank.bank_name) + '</span></div>' : '') + (bank.bank_account ? '<div class="pa-bank-row"><span class="pa-bank-row-label">STK</span><span class="pa-bank-row-value">' + escapeHtml(bank.bank_account) + '</span></div>' : '') + '</div></div>')
+                    : '<div class="pa-bank-card" style="background:#FEF2F2;"><div class="pa-bank-card-title" style="color:#DC2626;">Chưa điền thông tin nhận tiền</div></div>';
 
-                // Commissions list
                 const commsHtml = g.commissions.map(function(c) {
                     const typeText = c.commission_type === 'first' ? 'Lần đầu' : 'Tiếp theo';
-                    return '<div class="pa-comm">' +
-                        '<div style="flex:1; min-width:0;">' +
-                            '<div class="pa-comm-email">' +
-                                '<i class="fa-regular fa-envelope" style="color:#94A3B8; margin-right:6px;"></i>' +
-                                escapeHtml(c.customer_email || '—') +
-                            '</div>' +
-                            '<div class="pa-comm-meta">' +
-                                '<i class="fa-solid fa-box"></i> ' +
-                                '<b>' + escapeHtml(c.package_id || '—') + '</b> · ' +
-                                paFmt(c.payment_amount) + 'đ<br>' +
-                                '<i class="fa-solid fa-tag"></i> ' +
-                                typeText + ' · ' + c.commission_rate + '% · ' +
-                                paFmtDate(c.calculated_at) +
-                            '</div>' +
-                        '</div>' +
-                        '<div style="text-align:right;">' +
-                            '<div class="pa-comm-amount">+' + paFmt(c.commission_amount) + 'đ</div>' +
-                            '<button class="pa-paid-btn" ' +
-                                'onclick="paMarkPaid(\'' + escapeHtml(c.commission_id) + '\', ' + (c.commission_amount || 0) + ', this)">' +
-                                '<i class="fa-solid fa-check"></i> Duyệt' +
-                            '</button>' +
-                        '</div>' +
-                    '</div>';
+                    return '<div class="pa-comm"><div style="flex:1; min-width:0;"><div class="pa-comm-email"><i class="fa-regular fa-envelope" style="color:#94A3B8; margin-right:6px;"></i>' + escapeHtml(c.customer_email || '—') + '</div><div class="pa-comm-meta"><i class="fa-solid fa-box"></i> <b>' + escapeHtml(c.package_id || '—') + '</b> · ' + paFmt(c.payment_amount) + 'đ<br><i class="fa-solid fa-tag"></i> ' + typeText + ' · ' + c.commission_rate + '% · ' + paFmtDate(c.calculated_at) + '</div></div><div style="text-align:right;"><div class="pa-comm-amount">+' + paFmt(c.commission_amount) + 'đ</div><button class="pa-paid-btn" onclick="paMarkPaid(\'' + escapeHtml(c.commission_id) + '\', ' + (c.commission_amount || 0) + ', this)"><i class="fa-solid fa-check"></i> Duyệt</button></div></div>';
                 }).join('');
 
                 const safeId = (g.partner_id || '').replace(/[^a-zA-Z0-9_-]/g, '_');
 
-                html +=
-                    '<div class="pa-group" id="pagrp_' + safeId + '">' +
-                        '<div class="pa-group-header" onclick="paToggleGroup(\'' + escapeHtml(g.partner_id) + '\')">' +
-                            '<div style="flex:1; min-width:0;">' +
-                                '<div class="pa-partner-name">' +
-                                    '<i class="fa-solid fa-user-tie"></i> ' +
-                                    escapeHtml(g.partner_name) +
-                                '</div>' +
-                                '<div style="font-size:12px; color:#64748B;">' +
-                                    escapeHtml(g.partner_id) + ' · ' +
-                                    g.commissions.length + ' khoản · ' +
-                                    '<b style="color:#D97706;">' + paFmt(g.subtotal) + 'đ</b>' +
-                                '</div>' +
-                            '</div>' +
-                            '<i class="fa-solid fa-chevron-down pa-chevron"></i>' +
-                        '</div>' +
-                        '<div class="pa-group-body">' +
-                            bankHtml +
-                            '<div style="font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:8px;">' +
-                                'Chi tiết (' + g.commissions.length + ' khoản)' +
-                            '</div>' +
-                            commsHtml +
-                            '<button class="pa-mark-all-btn" ' +
-                                'onclick="paMarkAll(\'' + escapeHtml(g.partner_id) + '\', this)">' +
-                                '<i class="fa-solid fa-check-double"></i> ' +
-                                'Duyệt tất cả (' + g.commissions.length + ' khoản)' +
-                            '</button>' +
-                        '</div>' +
-                    '</div>';
+                html += '<div class="pa-group" id="pagrp_' + safeId + '"><div class="pa-group-header" onclick="paToggleGroup(\'' + escapeHtml(g.partner_id) + '\')"><div style="flex:1; min-width:0;"><div class="pa-partner-name"><i class="fa-solid fa-user-tie"></i> ' + escapeHtml(g.partner_name) + '</div><div style="font-size:12px; color:#64748B;">' + escapeHtml(g.partner_id) + ' · ' + g.commissions.length + ' khoản · <b style="color:#D97706;">' + paFmt(g.subtotal) + 'đ</b></div></div><i class="fa-solid fa-chevron-down pa-chevron"></i></div><div class="pa-group-body">' + bankHtml + '<div style="font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:8px;">Chi tiết (' + g.commissions.length + ' khoản)</div>' + commsHtml + '<button class="pa-mark-all-btn" onclick="paMarkAll(\'' + escapeHtml(g.partner_id) + '\', this)"><i class="fa-solid fa-check-double"></i> Duyệt tất cả (' + g.commissions.length + ' khoản)</button></div></div>';
             });
 
             list.innerHTML = html;
-
-            // Auto expand nếu chỉ 1 partner
             if (Object.keys(groups).length === 1) {
                 const first = list.querySelector('.pa-group');
                 if (first) first.classList.add('expanded');
             }
-
         } catch (e) {
             list.innerHTML = '<div class="pa-loading">❌ Lỗi kết nối máy chủ</div>';
+        }
+    };
+
+    // ===== 2. LOAD CAFE REVENUE =====
+    window.loadCafeRevenue = async function() {
+        const monthPicker = document.getElementById('cafeMonthPicker');
+        if (!monthPicker.value) {
+            const now = new Date();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            monthPicker.value = `${now.getFullYear()}-${m}`;
+        }
+
+        const list = document.getElementById('paListCafe');
+        list.innerHTML = '<div class="pa-loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>';
+
+        try {
+            const res = await fetch(`${CLOUD_URL}?action=cafeAdminGetPendingRevenue&adminToken=${paGetToken()}&month=${monthPicker.value}`);
+            const data = await res.json();
+            if (data.status !== 200) throw new Error(data.message);
+
+            allCafeData = data.cafes || [];
+
+            document.getElementById('cafeTotalAmount').textContent = paFmt(data.total_amount) + 'đ';
+            document.getElementById('cafeTotalUnpaid').textContent = paFmt(data.total_unpaid) + 'đ';
+            document.getElementById('cafeTotalPaid').textContent = paFmt(data.total_paid) + 'đ';
+
+            filterAndRenderCafes();
+
+        } catch (e) {
+            list.innerHTML = `<div class="pa-loading">❌ ${e.message}</div>`;
+        }
+    };
+
+    window.filterAndRenderCafes = function() {
+        const list = document.getElementById('paListCafe');
+        const filterStatus = document.getElementById('cafePayFilter').value;
+
+        if (allCafeData.length === 0) {
+            list.innerHTML = '<div class="pa-loading">🎉 Không có dữ liệu trong tháng này!</div>';
+            return;
+        }
+
+        let filteredCafes = allCafeData.map(cafe => {
+            const filteredBills = cafe.bills.filter(b => {
+                const bStatus = b.payment_status || 'unpaid';
+                return filterStatus === 'all' || bStatus === filterStatus;
+            });
+            return { ...cafe, displayBills: filteredBills };
+        }).filter(cafe => cafe.displayBills.length > 0);
+
+        if (filteredCafes.length === 0) {
+            list.innerHTML = `<div class="pa-loading">Không có bill nào ở trạng thái này.</div>`;
+            return;
+        }
+
+        list.innerHTML = filteredCafes.map(cafe => {
+            const safeId = String(cafe.cafe_id).replace(/[^a-zA-Z0-9_-]/g, '_');
+            
+            const billsHtml = cafe.displayBills.map(b => {
+                const isPaid = (b.payment_status || 'unpaid') === 'paid';
+                return `
+                <div class="pa-comm">
+                    <div style="flex:1;">
+                        <div class="pa-comm-email">${escapeHtml(b.guest_name)}</div>
+                        <div class="pa-comm-meta">Ra: ${paFmtDate(b.check_out_at)} · ${b.billable_hours}h</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="pa-comm-amount" style="color: ${isPaid ? '#059669' : '#D97706'}">${paFmt(b.revenue_amount)}đ</div>
+                        <div style="font-size: 11px; font-weight: 700; margin-top: 4px; ${isPaid ? 'color:#059669;' : 'color:#DC2626;'}">
+                            ${isPaid ? '<i class="fa-solid fa-check-circle"></i> Đã trả' : '<i class="fa-solid fa-clock"></i> Chưa trả'}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            const showPayBtn = filterStatus !== 'paid' && cafe.unpaid_amount > 0;
+
+            return `
+                <div class="pa-group" id="grp_${safeId}">
+                    <div class="pa-group-header" onclick="paToggleGroup('grp_', '${cafe.cafe_id}')">
+                        <div style="flex:1;">
+                            <div class="pa-partner-name"><i class="fa-solid fa-store"></i> ${escapeHtml(cafe.cafe_name)}</div>
+                            <div style="font-size:12px;color:#64748B;">
+                                Tổng: <b>${paFmt(cafe.total_amount)}đ</b> · 
+                                <span style="color:#DC2626;">Nợ: ${paFmt(cafe.unpaid_amount)}đ</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down pa-chevron"></i>
+                    </div>
+                    <div class="pa-group-body">
+                        <div style="font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:8px;">
+                            Chi tiết (${cafe.displayBills.length} bill)
+                        </div>
+                        ${billsHtml}
+                        ${showPayBtn ? `
+                        <button class="pa-mark-all-btn" onclick="paMarkCafePaid('${cafe.cafe_id}', this)">
+                            <i class="fa-solid fa-check-double"></i> Đánh dấu đã trả (${paFmt(cafe.unpaid_amount)}đ)
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (filteredCafes.length === 1) list.querySelector('.pa-group').classList.add('expanded');
+    };
+
+    window.paMarkCafePaid = async function(cafeId, btn) {
+        const cafe = allCafeData.find(c => c.cafe_id === cafeId);
+        if (!cafe) return;
+        
+        const unpaidBills = cafe.bills.filter(b => b.payment_status !== 'paid');
+        if (unpaidBills.length === 0) return;
+
+        if (!confirm(`Xác nhận đã thanh toán ${paFmt(cafe.unpaid_amount)}đ cho ${cafe.cafe_name}?`)) return;
+
+        btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+
+        const checkinIds = unpaidBills.map(b => b.checkin_id);
+
+        try {
+            const res = await fetch(CLOUD_URL, {
+                method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({
+                    action: 'cafeAdminMarkRevenuePaid',
+                    adminToken: paGetToken(),
+                    checkinIds: JSON.stringify(checkinIds)
+                }).toString()
+            });
+            const data = await res.json();
+            if (data.status === 200) {
+                paToast('✅ Đã thanh toán thành công!', true);
+                loadCafeRevenue();
+            } else {
+                paToast('❌ Lỗi: ' + data.message, false);
+                btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Thử lại';
+            }
+        } catch (e) {
+            paToast('❌ Lỗi kết nối', false);
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Thử lại';
         }
     };
 
@@ -1051,7 +1183,146 @@
     } else {
         paInit();
     }
+    // ===== 2. LOAD CAFE REVENUE =====
+    window.loadCafeRevenue = async function() {
+        const monthPicker = document.getElementById('cafeMonthPicker');
+        if (!monthPicker.value) {
+            const now = new Date();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            monthPicker.value = `${now.getFullYear()}-${m}`;
+        }
 
+        const list = document.getElementById('paListCafe');
+        list.innerHTML = '<div class="pa-loading"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>';
+
+        try {
+            const res = await fetch(`${CLOUD_URL}?action=cafeAdminGetPendingRevenue&adminToken=${paGetToken()}&month=${monthPicker.value}`);
+            const data = await res.json();
+            if (data.status !== 200) throw new Error(data.message);
+
+            allCafeData = data.cafes || [];
+
+            document.getElementById('cafeTotalAmount').textContent = paFmt(data.total_amount) + 'đ';
+            document.getElementById('cafeTotalUnpaid').textContent = paFmt(data.total_unpaid) + 'đ';
+            document.getElementById('cafeTotalPaid').textContent = paFmt(data.total_paid) + 'đ';
+
+            filterAndRenderCafes();
+
+        } catch (e) {
+            list.innerHTML = `<div class="pa-loading">❌ ${e.message}</div>`;
+        }
+    };
+
+    window.filterAndRenderCafes = function() {
+        const list = document.getElementById('paListCafe');
+        const filterStatus = document.getElementById('cafePayFilter').value;
+
+        if (allCafeData.length === 0) {
+            list.innerHTML = '<div class="pa-loading">🎉 Không có dữ liệu trong tháng này!</div>';
+            return;
+        }
+
+        let filteredCafes = allCafeData.map(cafe => {
+            const filteredBills = cafe.bills.filter(b => {
+                const bStatus = b.payment_status || 'unpaid';
+                return filterStatus === 'all' || bStatus === filterStatus;
+            });
+            return { ...cafe, displayBills: filteredBills };
+        }).filter(cafe => cafe.displayBills.length > 0);
+
+        if (filteredCafes.length === 0) {
+            list.innerHTML = `<div class="pa-loading">Không có bill nào ở trạng thái này.</div>`;
+            return;
+        }
+
+        list.innerHTML = filteredCafes.map(cafe => {
+            const safeId = String(cafe.cafe_id).replace(/[^a-zA-Z0-9_-]/g, '_');
+            
+            const billsHtml = cafe.displayBills.map(b => {
+                const isPaid = (b.payment_status || 'unpaid') === 'paid';
+                return `
+                <div class="pa-comm">
+                    <div style="flex:1;">
+                        <div class="pa-comm-email">${escapeHtml(b.guest_name)}</div>
+                        <div class="pa-comm-meta">Ra: ${paFmtDate(b.check_out_at)} · ${b.billable_hours}h</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="pa-comm-amount" style="color: ${isPaid ? '#059669' : '#D97706'}">${paFmt(b.revenue_amount)}đ</div>
+                        <div style="font-size: 11px; font-weight: 700; margin-top: 4px; ${isPaid ? 'color:#059669;' : 'color:#DC2626;'}">
+                            ${isPaid ? '<i class="fa-solid fa-check-circle"></i> Đã trả' : '<i class="fa-solid fa-clock"></i> Chưa trả'}
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            const showPayBtn = filterStatus !== 'paid' && cafe.unpaid_amount > 0;
+
+            return `
+                <div class="pa-group" id="grp_${safeId}">
+                    <div class="pa-group-header" onclick="paToggleGroup('grp_', '${cafe.cafe_id}')">
+                        <div style="flex:1;">
+                            <div class="pa-partner-name"><i class="fa-solid fa-store"></i> ${escapeHtml(cafe.cafe_name)}</div>
+                            <div style="font-size:12px;color:#64748B;">
+                                Tổng: <b>${paFmt(cafe.total_amount)}đ</b> · 
+                                <span style="color:#DC2626;">Nợ: ${paFmt(cafe.unpaid_amount)}đ</span>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down pa-chevron"></i>
+                    </div>
+                    <div class="pa-group-body">
+                        <div style="font-size:12px; font-weight:700; color:#64748B; text-transform:uppercase; margin-bottom:8px;">
+                            Chi tiết (${cafe.displayBills.length} bill)
+                        </div>
+                        ${billsHtml}
+                        ${showPayBtn ? `
+                        <button class="pa-mark-all-btn" onclick="paMarkCafePaid('${cafe.cafe_id}', this)">
+                            <i class="fa-solid fa-check-double"></i> Đánh dấu đã trả (${paFmt(cafe.unpaid_amount)}đ)
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (filteredCafes.length === 1) list.querySelector('.pa-group').classList.add('expanded');
+    };
+
+    window.paMarkCafePaid = async function(cafeId, btn) {
+        const cafe = allCafeData.find(c => c.cafe_id === cafeId);
+        if (!cafe) return;
+        
+        const unpaidBills = cafe.bills.filter(b => b.payment_status !== 'paid');
+        if (unpaidBills.length === 0) return;
+
+        if (!confirm(`Xác nhận đã thanh toán ${paFmt(cafe.unpaid_amount)}đ cho ${cafe.cafe_name}?`)) return;
+
+        btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+
+        const checkinIds = unpaidBills.map(b => b.checkin_id);
+
+        try {
+            const res = await fetch(CLOUD_URL, {
+                method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({
+                    action: 'cafeAdminMarkRevenuePaid',
+                    adminToken: paGetToken(),
+                    checkinIds: JSON.stringify(checkinIds)
+                }).toString()
+            });
+            const data = await res.json();
+            if (data.status === 200) {
+                paToast('✅ Đã thanh toán thành công!', true);
+                loadCafeRevenue();
+            } else {
+                paToast('❌ Lỗi: ' + data.message, false);
+                btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Thử lại';
+            }
+        } catch (e) {
+            paToast('❌ Lỗi kết nối', false);
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check-double"></i> Thử lại';
+        }
+    };
 })();
 </script>
 
