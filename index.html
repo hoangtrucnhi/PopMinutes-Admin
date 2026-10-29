@@ -468,10 +468,23 @@
         }
     };
 
-    window.filterAndRenderCafes = function() {
+        window.filterAndRenderCafes = function() {
         const list = document.getElementById('paListCafe');
         const filterStatus = document.getElementById('cafePayFilter').value;
 
+        // 1. Update Stats (Luôn lấy data từ allCafeData - tức là data của Tháng đang lọc)
+        let totalRev = 0, totalUnpaid = 0, totalPaid = 0;
+        allCafeData.forEach(cafe => {
+            totalRev += cafe.total_amount || 0;
+            totalPaid += cafe.paid_amount || 0;
+            totalUnpaid += cafe.unpaid_amount || 0;
+        });
+
+        document.getElementById('cafeTotalAmount').textContent = paFmt(totalRev) + 'đ';
+        document.getElementById('cafeTotalUnpaid').textContent = paFmt(totalUnpaid) + 'đ';
+        document.getElementById('cafeTotalPaid').textContent = paFmt(totalPaid) + 'đ';
+
+        // 2. Filter danh sách hiển thị
         if (allCafeData.length === 0) {
             list.innerHTML = '<div class="pa-loading">🎉 Không có dữ liệu trong tháng này!</div>';
             return;
@@ -493,7 +506,7 @@
         list.innerHTML = filteredCafes.map(cafe => {
             const safeId = String(cafe.cafe_id).replace(/[^a-zA-Z0-9_-]/g, '_');
             
-                        const billsHtml = cafe.displayBills.map(b => {
+            const billsHtml = cafe.displayBills.map(b => {
                 const isPaid = (b.payment_status || 'unpaid') === 'paid';
                 const isPending = (b.confirmation_status || 'pending') === 'pending';
                 
@@ -522,8 +535,8 @@
                         <div style="flex:1;">
                             <div class="pa-partner-name"><i class="fa-solid fa-store"></i> ${escapeHtml(cafe.cafe_name)}</div>
                             <div style="font-size:13px;color:#64748B;">
-                                Tổng: <b>${paFmt(cafe.total_amount)}đ</b> · 
-                                <span style="color:#DC2626;">Nợ: ${paFmt(cafe.unpaid_amount)}đ</span>
+                                Tổng tháng: <b>${paFmt(cafe.total_amount)}đ</b> · 
+                                <span style="color:#DC2626;">Chưa trả: ${paFmt(cafe.unpaid_amount)}đ</span>
                             </div>
                         </div>
                         <i class="fa-solid fa-chevron-down pa-chevron"></i>
@@ -535,7 +548,7 @@
                         ${billsHtml}
                         ${showPayBtn ? `
                         <button class="pa-mark-all-btn" onclick="paMarkCafePaid('${cafe.cafe_id}', this)">
-                            <i class="fa-solid fa-check-double"></i> Đánh dấu đã trả (${paFmt(cafe.unpaid_amount)}đ)
+                            <i class="fa-solid fa-check-double"></i> Thanh toán nợ tháng này (${paFmt(cafe.unpaid_amount)}đ)
                         </button>
                         ` : ''}
                     </div>
