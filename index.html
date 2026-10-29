@@ -493,13 +493,16 @@
         list.innerHTML = filteredCafes.map(cafe => {
             const safeId = String(cafe.cafe_id).replace(/[^a-zA-Z0-9_-]/g, '_');
             
-            const billsHtml = cafe.displayBills.map(b => {
+                        const billsHtml = cafe.displayBills.map(b => {
                 const isPaid = (b.payment_status || 'unpaid') === 'paid';
+                const isPending = (b.confirmation_status || 'pending') === 'pending';
+                
                 return `
                 <div class="pa-comm">
                     <div style="flex:1;">
                         <div class="pa-comm-email">${escapeHtml(b.guest_name)}</div>
                         <div class="pa-comm-meta">Ra: ${paFmtDate(b.check_out_at)} · ${b.billable_hours}h</div>
+                        ${isPending ? `<div style="font-size:11px; color:#D97706; font-weight:700; margin-top:4px;"><i class="fa-solid fa-hourglass-half"></i> Chờ quán chốt bill</div>` : ''}
                     </div>
                     <div style="text-align:right;">
                         <div class="pa-comm-amount" style="color: ${isPaid ? '#059669' : '#D97706'}">${paFmt(b.revenue_amount)}đ</div>
